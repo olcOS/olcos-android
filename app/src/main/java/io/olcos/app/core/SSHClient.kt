@@ -9,10 +9,12 @@ import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.UIKeyboardInteractive
 import com.jcraft.jsch.UserInfo
+import io.olcos.app.data.HostKeyTrust
 import io.olcos.app.data.SSHHostKeys
 import io.olcos.app.data.ServerSecrets
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.util.Base64
 
 /**
  * One SSH connection to a server, for the install of the server and the
@@ -63,7 +65,13 @@ class SSHClient private constructor(private val session: Session, val host: Stri
         runCatching { session.disconnect() }
     }
 
-    /** Trust on first use: the key of each type is kept per address; a different one later is a change. */
+    /**
+     * Trust on first use: the keys are kept per address; a different key
+     * later, or a key of a type not seen at an address that has one, is a
+     * change (HostKeyTrust). The remembered keys are also offered to jsch,
+     * which then asks the server for those types first, so an unchanged
+     * server keeps presenting the key the phone knows.
+     */
     private class TrustOnFirstUse(private val store: SSHHostKeys, private val host: String, private val port: Int) : HostKeyRepository {
         @Volatile
         var changed = false
@@ -71,10 +79,14 @@ class SSHClient private constructor(private val session: Session, val host: Stri
         override fun check(host: String?, key: ByteArray?): Int {
             if (key == null) return HostKeyRepository.NOT_INCLUDED
             val presented = HostKey(this.host, key)
-            val known = store.known(this.host, port, presented.type) ?: return HostKeyRepository.NOT_INCLUDED
-            if (known == presented.key) return HostKeyRepository.OK
-            changed = true
-            return HostKeyRepository.CHANGED
+            return when (HostKeyTrust.verdict(store.knownTypes(this.host, port), presented.type, presented.key)) {
+                HostKeyTrust.Verdict.NEW -> HostKeyRepository.NOT_INCLUDED
+                HostKeyTrust.Verdict.KNOWN -> HostKeyRepository.OK
+                HostKeyTrust.Verdict.CHANGED -> {
+                    changed = true
+                    HostKeyRepository.CHANGED
+                }
+            }
         }
 
         override fun add(hostkey: HostKey, ui: UserInfo?) {
@@ -89,7 +101,12 @@ class SSHClient private constructor(private val session: Session, val host: Stri
 
         override fun getHostKey(): Array<HostKey> = emptyArray()
 
-        override fun getHostKey(host: String?, type: String?): Array<HostKey> = emptyArray()
+        override fun getHostKey(host: String?, type: String?): Array<HostKey> =
+            store.knownTypes(this.host, port)
+                .filterKeys { type == null || it == type }
+                .values
+                .mapNotNull { runCatching { HostKey(this.host, Base64.getDecoder().decode(it)) }.getOrNull() }
+                .toTypedArray()
     }
 
     /** Answers jsch's prompts: a new host key is accepted, a changed one is not; the password serves keyboard-interactive too. */
