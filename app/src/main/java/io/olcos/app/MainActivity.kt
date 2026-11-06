@@ -68,6 +68,7 @@ import io.olcos.app.model.SubscriptionList
 import io.olcos.app.ui.AddServerScreen
 import io.olcos.app.ui.ConnectionsScreen
 import io.olcos.app.ui.HomeScreen
+import io.olcos.app.ui.ImportConfirmDialog
 import io.olcos.app.ui.KillGuideDialog
 import io.olcos.app.ui.LogsScreen
 import io.olcos.app.ui.OlcTab
@@ -79,6 +80,7 @@ import io.olcos.app.ui.SettingsScreen
 import io.olcos.app.ui.SpeedScreen
 import io.olcos.app.ui.feelImport
 import io.olcos.app.ui.importSource
+import io.olcos.app.ui.importNeedsConfirm
 import io.olcos.app.ui.importText
 import io.olcos.app.ui.refreshDueSources
 import kotlinx.coroutines.launch
@@ -89,11 +91,13 @@ class MainActivity : ComponentActivity() {
     private val requestedTab = mutableStateOf<Int?>(null)
     /** The tile or the widget opened the app to connect what it could not by itself. */
     private val requestedConnect = mutableStateOf(false)
+    /** A link or a shared text waiting for the person's yes (ImportConfirmDialog). */
+    private val pendingImport = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (savedInstanceState == null) handleIntent(intent)
+        if (savedInstanceState == null) handleIntent(intent) else pendingImport.value = savedInstanceState.getString(PENDING_IMPORT)
         setContent {
             val appearance by AppGraph.settings.appearance.collectAsStateWithLifecycle()
             val systemDark = isSystemInDarkTheme()
@@ -109,8 +113,25 @@ class MainActivity : ComponentActivity() {
                 val style = if (dark) SystemBarStyle.dark(clear) else SystemBarStyle.light(clear, clear)
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
             }
-            OlcosTheme(dark = dark) { Root(requestedTab, requestedConnect) }
+            OlcosTheme(dark = dark) {
+                Root(requestedTab, requestedConnect)
+                pendingImport.value?.let { raw ->
+                    ImportConfirmDialog(
+                        raw,
+                        onAdd = {
+                            pendingImport.value = null
+                            takeText(raw)
+                        },
+                        onDismiss = { pendingImport.value = null },
+                    )
+                }
+            }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        pendingImport.value?.let { outState.putString(PENDING_IMPORT, it) }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -118,13 +139,17 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
-    /** A link opened from another app, or a text shared to olcOS: taken in like a pasted one. */
+    /** A link opened from another app, or a text shared to olcOS: taken in like a pasted one, once the person agrees. */
     private fun handleIntent(intent: Intent?) {
         when (intent?.action) {
             ACTION_CONNECT -> requestedConnect.value = true
-            Intent.ACTION_VIEW -> intent.data?.toString()?.let { takeText(it) }
-            Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)?.let { takeText(it) }
+            Intent.ACTION_VIEW -> intent.data?.toString()?.let { offerText(it) }
+            Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT)?.let { offerText(it) }
         }
+    }
+
+    private fun offerText(raw: String) {
+        if (importNeedsConfirm(raw)) pendingImport.value = raw else takeText(raw)
     }
 
     private fun takeText(raw: String) {
@@ -148,6 +173,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         /** Opens the app to connect the chosen record, from a tile or a widget that could not. */
         const val ACTION_CONNECT = "io.olcos.app.CONNECT"
+        private const val PENDING_IMPORT = "olcos.pendingImport"
     }
 }
 

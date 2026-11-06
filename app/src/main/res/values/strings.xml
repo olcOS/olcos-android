@@ -517,4 +517,11 @@
     <string name="account_check_title">A sign-in has expired</string>
     <string name="account_check_vk">The saved VK sign-in no longer works. Sign in again in Settings → Accounts.</string>
     <string name="account_check_mtslink">The saved MTS Link sign-in no longer works. Sign in again in Settings → Accounts.</string>
+    <!-- A link opened from another app or a shared text, before it is taken in (ImportConfirmDialog). -->
+    <string name="import_confirm_title">Add from a link?</string>
+    <string name="import_confirm_message_fmt">%1$s\n\nAdd only what you got from people you trust: your traffic will go through it.</string>
+    <string name="import_what_connection_fmt">Connection: %1$s</string>
+    <string name="import_what_subscription_fmt">A list from %1$s. The app will fetch it from there again now and then.</string>
+    <string name="import_what_invite_fmt">An invite to the server %1$s</string>
+    <string name="import_what_list">A list of connections</string>
 </resources>

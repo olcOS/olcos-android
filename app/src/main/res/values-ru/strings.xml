@@ -523,4 +523,11 @@
     <string name="account_check_title">Срок входа истёк</string>
     <string name="account_check_vk">Сохранённый вход во VK больше не работает. Войдите снова в разделе «Настройки → Аккаунты».</string>
     <string name="account_check_mtslink">Сохранённая сессия МТС Линк больше не работает. Войдите снова в разделе «Настройки → Аккаунты».</string>
+    <!-- A link opened from another app or a shared text, before it is taken in (ImportConfirmDialog). -->
+    <string name="import_confirm_title">Добавить из ссылки?</string>
+    <string name="import_confirm_message_fmt">%1$s\n\nДобавляйте только то, что получили от людей, которым доверяете: через это пойдёт ваш трафик.</string>
+    <string name="import_what_connection_fmt">Подключение: %1$s</string>
+    <string name="import_what_subscription_fmt">Список с адреса %1$s. Приложение будет время от времени загружать его оттуда заново.</string>
+    <string name="import_what_invite_fmt">Приглашение на сервер %1$s</string>
+    <string name="import_what_list">Список подключений</string>
 </resources>
