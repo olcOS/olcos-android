@@ -82,9 +82,10 @@ fun AddServerScreen(onDone: (serverID: String) -> Unit, onBack: () -> Unit) {
     var port by rememberSaveable { mutableStateOf("22") }
     var user by rememberSaveable { mutableStateOf("root") }
     var useKey by rememberSaveable { mutableStateOf(false) }
-    var password by rememberSaveable { mutableStateOf("") }
-    var privateKey by rememberSaveable { mutableStateOf("") }
-    var passphrase by rememberSaveable { mutableStateOf("") }
+    // The secrets stay out of the saved instance state, which the system process keeps.
+    var password by remember { mutableStateOf("") }
+    var privateKey by remember { mutableStateOf("") }
+    var passphrase by remember { mutableStateOf("") }
     var showPassword by rememberSaveable { mutableStateOf(false) }
     var name by rememberSaveable { mutableStateOf("") }
     var carrier by rememberSaveable { mutableStateOf("jitsi") }
