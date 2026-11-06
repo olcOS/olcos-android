@@ -40,8 +40,9 @@ android {
                 keyPassword = "android"
             }
         }
-        // Releases are signed with the same shared key, so a release installs
-        // over a test build and the other way round.
+        // Releases are signed with the same shared key. A debug build has its
+        // own application id (below), so the two install side by side and a
+        // debuggable build never updates a release or reaches its data.
         create("release") {
             val shared = System.getenv("OLCOS_DEBUG_KEYSTORE")
             if (shared != null) {
@@ -55,6 +56,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = false
             if (System.getenv("OLCOS_DEBUG_KEYSTORE") != null) signingConfig = signingConfigs.getByName("release")

@@ -109,6 +109,23 @@ jobs:
           TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
           "$TOOLS/apksigner" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | head -n 3
 
+      # What a GitHub release ships must be the release build: not debuggable,
+      # under the app's own id, and only with the ABIs the Go core is built for.
+      - name: Check the release APK
+        run: |
+          TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
+          APK=app/build/outputs/apk/release/app-release.apk
+          BADGING="$("$TOOLS/aapt2" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | grep -E "^package:|^native-code:"
+          if printf '%s\n' "$BADGING" | grep -q "application-debuggable"; then
+            echo "::error::the release APK is debuggable"; exit 1
+          fi
+          printf '%s\n' "$BADGING" | grep -q "^package: name='io.olcos.app' " || { echo "::error::the release APK is not io.olcos.app"; exit 1; }
+          LIBS="$(unzip -Z1 "$APK" 'lib/*' | cut -d/ -f2 | sort -u | tr '\n' ' ')"
+          echo "ABIs: $LIBS"
+          [ "$LIBS" = "arm64-v8a x86_64 " ] || { echo "::error::unexpected ABIs in the release APK: $LIBS"; exit 1; }
+          unzip -Z1 "$APK" 'lib/arm64-v8a/libgojni.so' >/dev/null || { echo "::error::the Go core is missing for arm64-v8a"; exit 1; }
+
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         with:
