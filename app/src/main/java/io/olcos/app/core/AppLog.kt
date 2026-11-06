@@ -80,13 +80,14 @@ object AppLog {
     }
 
     // The system log is the extra copy: a JVM unit test has none (its stub throws), and the in-app log is what matters.
+    // It gets the masked line too: logcat and a bug report must not carry a tunnel key or a server's address.
     fun i(tag: String, line: String) {
-        runCatching { Log.i(tag, line) }
+        runCatching { Log.i(tag, redact(line)) }
         add(tag, line)
     }
 
     fun w(tag: String, line: String) {
-        runCatching { Log.w(tag, line) }
+        runCatching { Log.w(tag, redact(line)) }
         add(tag, line)
     }
 
