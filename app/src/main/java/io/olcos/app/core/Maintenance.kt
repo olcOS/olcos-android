@@ -5,6 +5,7 @@ import io.olcos.app.R
 import io.olcos.app.data.AppSettings
 import io.olcos.app.model.OlcrtcLink
 import java.net.URI
+import java.security.SecureRandom
 
 /**
  * The owner's maintenance on a server, run through the agent's `exec`: the
@@ -251,7 +252,9 @@ object Maintenance {
             (u.scheme ?: "https") + "://" + host + (if (u.port > 0) ":" + u.port else "")
         } ?: DEFAULT_JITSI_BASE
         val alphabet = "abcdefghijklmnopqrstuvwxyz0123456789"
-        val name = (1..8).map { alphabet.random() }.joinToString("")
+        // A room on a public instance is open to whoever names it: the name comes from a secure source.
+        val random = SecureRandom()
+        val name = (1..8).map { alphabet[random.nextInt(alphabet.length)] }.joinToString("")
         return base.trimEnd('/') + "/olcrtc-" + name
     }
 
