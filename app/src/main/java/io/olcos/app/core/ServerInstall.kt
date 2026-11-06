@@ -122,18 +122,19 @@ object ServerInstall {
         _state.value = _state.value.copy(step = app.getString(id))
     }
 
-    private suspend fun install(app: Context, o: Options): Outcome {
+    private suspend fun install(app: Context, asked: Options): Outcome {
         // An MTS Link meeting the server cannot enter stops the install before the VPS is touched.
-        MtsMeetingCheck.refusal(o.carrier, o.roomID)?.let { verdict ->
+        MtsMeetingCheck.refusal(asked.carrier, asked.roomID)?.let { verdict ->
             throw Failure(app.getString(MtsMeetingCheck.refusalText(verdict) ?: R.string.mts_check_unknown))
         }
         val srv = asset(app, "scripts/srv.sh") ?: throw Failure(app.getString(R.string.install_error_installer_missing))
         val sources = agentSources(app)
         val status = statusScripts(app)
-        var ssh = SSHClient.connect(app, o.host, o.sshPort, o.user, o.secret)
+        var ssh = SSHClient.connect(app, asked.host, asked.sshPort, asked.user, asked.secret)
         try {
             val (rc, who) = ssh.exec("id -u", 20)
             if (rc != 0 || who.trim() != "0") throw Failure(app.getString(R.string.install_error_not_root))
+            val o = pickJitsi(app, ssh, asked)
 
             step(app, R.string.install_step_upload)
             upload(ssh, Remote.SCRIPT, srv)
@@ -195,6 +196,32 @@ object ServerInstall {
         } finally {
             ssh.close()
         }
+    }
+
+    /**
+     * For a Jitsi room on the app's default server, the first Jitsi server
+     * that lets the VPS in, asked from the VPS: the default turns away servers
+     * abroad. A Jitsi server or a room link the person named is kept as it is.
+     */
+    private fun pickJitsi(app: Context, ssh: SSHClient, o: Options): Options {
+        if (o.carrier != "jitsi") return o
+        val defaultHost = JitsiProbe.hostOf(Maintenance.DEFAULT_JITSI_BASE)
+        val baseHost = JitsiProbe.hostOf(o.jitsiURL.ifEmpty { Maintenance.DEFAULT_JITSI_BASE })
+        val roomHost = JitsiProbe.hostOf(o.roomID)
+        if (baseHost != defaultHost || (roomHost != null && roomHost != defaultHost)) return o
+        step(app, R.string.install_step_jitsi)
+        val (_, out) = ssh.exec(JitsiProbe.script(), 60)
+        if (out.contains(JitsiProbe.NO_CURL)) {
+            // Nothing to ask with yet (srv.sh installs curl): the default stays.
+            AppLog.w(TAG, "no curl on ${o.host} to check the Jitsi servers with")
+            return o
+        }
+        val answers = JitsiProbe.parse(out)
+        val best = JitsiProbe.best(answers) ?: throw Failure(app.getString(R.string.install_error_no_jitsi))
+        AppLog.i(TAG, "jitsi servers that let ${o.host} in: " + answers.filter { it.usable }.joinToString(" ") { it.host })
+        val base = "https://$best"
+        val room = if (roomHost != null) base + "/" + o.roomID.trim().trimEnd('/').substringAfterLast('/') else o.roomID
+        return o.copy(jitsiURL = base, roomID = room)
     }
 
     /** Re-runs the agent step on a server this phone set up (after a core update changed the sources, or when the agent is gone). */

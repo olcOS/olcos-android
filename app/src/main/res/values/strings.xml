@@ -357,6 +357,7 @@
     <string name="action_open_server">Open the server</string>
     <string name="action_change_settings">Change the settings</string>
     <string name="install_step_connect">Connecting over SSH…</string>
+    <string name="install_step_jitsi">Checking which Jitsi servers let your server in…</string>
     <string name="install_step_upload">Uploading the installer…</string>
     <string name="install_step_launch">Starting the install on the server…</string>
     <string name="install_step_server">Installing the server…</string>
@@ -369,6 +370,7 @@
     <string name="install_step_agent">Building the agent…</string>
     <string name="install_step_save">Saving…</string>
     <string name="install_error_not_root">Sign in as root: the install needs it.</string>
+    <string name="install_error_no_jitsi">No Jitsi server from the app\'s list lets this server in. Pick another service, or type the address of a Jitsi server you know works.</string>
     <string name="install_error_no_link">The server printed no connection link.</string>
     <string name="install_error_timeout">The install did not finish in 25 minutes. Check the server and try again.</string>
     <string name="install_error_host_key_changed">The server\'s SSH key is not the one this phone remembers. If the server was reinstalled, that is expected; otherwise someone may be in the way. Forget the server on its page and try again.</string>

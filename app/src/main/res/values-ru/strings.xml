@@ -361,6 +361,7 @@
     <string name="action_open_server">Открыть сервер</string>
     <string name="action_change_settings">Изменить настройки</string>
     <string name="install_step_connect">Подключение по SSH…</string>
+    <string name="install_step_jitsi">Проверяем, какие серверы Jitsi пускают ваш сервер…</string>
     <string name="install_step_upload">Загрузка установщика…</string>
     <string name="install_step_launch">Запуск установки на сервере…</string>
     <string name="install_step_server">Установка сервера…</string>
@@ -373,6 +374,7 @@
     <string name="install_step_agent">Сборка агента…</string>
     <string name="install_step_save">Сохранение…</string>
     <string name="install_error_not_root">Войдите как root: установке это нужно.</string>
+    <string name="install_error_no_jitsi">Ни один сервер Jitsi из списка приложения не пускает этот сервер. Выберите другой сервис или впишите адрес сервера Jitsi, который точно работает.</string>
     <string name="install_error_no_link">Сервер не напечатал ссылку подключения.</string>
     <string name="install_error_timeout">Установка не закончилась за 25 минут. Проверьте сервер и попробуйте снова.</string>
     <string name="install_error_host_key_changed">Ключ SSH сервера не тот, что запомнил этот телефон. Если сервер переустанавливали, так и должно быть; иначе кто-то может стоять на пути. Забудьте сервер на его странице и попробуйте снова.</string>
