@@ -2,12 +2,17 @@ package io.olcos.app.data
 
 import io.olcos.app.core.AgentHTTPS
 import io.olcos.app.core.AppLog
+import io.olcos.app.core.Loopback
+import io.olcos.app.core.Socks5
+import io.olcos.app.core.TunnelManager
 import io.olcos.app.model.InviteCipher
 import io.olcos.app.model.InviteLink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -23,10 +28,14 @@ import javax.net.ssl.SSLSocketFactory
 
 /**
  * Downloads a subscription list: over HTTPS, or an invite's encrypted file
- * over plain HTTP. When the phone's DNS gives no address for an HTTPS list's
- * host (a lookup the provider blocks), the address comes from DNS over HTTPS
- * instead and the list from that address, its certificate checked against the
- * name, as the iOS SubscriptionFetcher does.
+ * over plain HTTP. While a session is up the request goes through its SOCKS
+ * port first: the app is outside its own VPN, and under a whitelist the
+ * phone's network does not reach a VPS's address while the tunnel's exit
+ * does (on iOS the app goes through the system VPN anyway). Otherwise, or
+ * when that fails, the request goes directly. When the phone's DNS gives no
+ * address for an HTTPS list's host (a lookup the provider blocks), the
+ * address comes from DNS over HTTPS instead and the list from that address,
+ * its certificate checked against the name, as the iOS SubscriptionFetcher does.
  */
 object SubscriptionFetcher {
     private const val TIMEOUT_MS = 20_000
@@ -57,6 +66,16 @@ object SubscriptionFetcher {
     class HttpStatus(val code: Int) : IOException("HTTP $code")
 
     private suspend fun get(url: String): String = withContext(Dispatchers.IO) {
+        tunnelSocks()?.let { socks ->
+            try {
+                return@withContext viaTunnel(URL(url), socks)
+            } catch (e: HttpStatus) {
+                // The server answered: its answer stands (a 404 is a revoked invite).
+                throw e
+            } catch (e: IOException) {
+                AppLog.i("olcos.list", "through the tunnel: ${e.message ?: e.javaClass.simpleName}; trying directly")
+            }
+        }
         try {
             direct(url)
         } catch (e: UnknownHostException) {
@@ -81,9 +100,45 @@ object SubscriptionFetcher {
         try {
             val code = connection.responseCode
             if (code !in 200..299) throw HttpStatus(code)
-            return text(connection.inputStream.use { it.readBytes() })
+            return text(connection.inputStream.use { readCapped(it) })
         } finally {
             connection.disconnect()
+        }
+    }
+
+    /** The body, read no further than the size a list may have: a huge answer stops early rather than filling the memory. */
+    private fun readCapped(input: InputStream): ByteArray {
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(16 * 1024)
+        while (true) {
+            val n = input.read(buffer)
+            if (n < 0) break
+            out.write(buffer, 0, n)
+            if (out.size() > MAX_BYTES) throw IOException("the answer is too large for a list")
+        }
+        return out.toByteArray()
+    }
+
+    /** The live session's SOCKS port and login, while a session is up; null otherwise. */
+    private fun tunnelSocks(): AgentHTTPS.Socks? {
+        val session = TunnelManager.session.value ?: return null
+        if (TunnelManager.state.value !is TunnelManager.State.Connected) return null
+        return AgentHTTPS.Socks(session.port, session.socksUser, session.socksPass)
+    }
+
+    /** One GET of [u] through the session's SOCKS port; the name goes to the tunnel's exit, which resolves it. */
+    private fun viaTunnel(u: URL, socks: AgentHTTPS.Socks): String {
+        val https = u.protocol.equals("https", ignoreCase = true)
+        val port = if (u.port > 0) u.port else if (https) 443 else 80
+        val host = u.host.removePrefix("[").removeSuffix("]")
+        val plain = Socket()
+        try {
+            plain.connect(InetSocketAddress(Loopback.address, socks.port), 3_000)
+            plain.soTimeout = TIMEOUT_MS
+            Socks5.connect(plain, host, port, socks.user, socks.pass)
+            return exchange(plain, u, host, port, https)
+        } finally {
+            runCatching { plain.close() }
         }
     }
 
@@ -146,25 +201,39 @@ object SubscriptionFetcher {
         try {
             plain.connect(InetSocketAddress(InetAddress.getByName(ip), port), TIMEOUT_MS)
             plain.soTimeout = TIMEOUT_MS
-            val tls = (SSLSocketFactory.getDefault() as SSLSocketFactory).createSocket(plain, u.host, port, true) as SSLSocket
-            runCatching { tls.sslParameters = tls.sslParameters.apply { serverNames = listOf(SNIHostName(u.host)) } }
-            tls.soTimeout = TIMEOUT_MS
-            tls.startHandshake()
-            if (!HttpsURLConnection.getDefaultHostnameVerifier().verify(u.host, tls.session)) {
-                throw SSLPeerUnverifiedException("the certificate is not for ${u.host}")
-            }
-            val path = u.path.ifEmpty { "/" } + (u.query?.let { "?$it" } ?: "")
-            val hostHeader = if (u.port > 0 && u.port != 443) "${u.host}:${u.port}" else u.host
-            val request = "GET $path HTTP/1.1\r\nHost: $hostHeader\r\nAccept: text/plain,text/markdown,*/*\r\n" +
-                "User-Agent: olcOS-android\r\nConnection: close\r\n\r\n"
-            tls.outputStream.write(request.toByteArray(Charsets.ISO_8859_1))
-            tls.outputStream.flush()
-            val response = AgentHTTPS.readResponse(tls.inputStream)
-            if (response.status !in 200..299) throw HttpStatus(response.status)
-            return text(response.body)
+            return exchange(plain, u, u.host, port, https = true)
         } finally {
             runCatching { plain.close() }
         }
+    }
+
+    /**
+     * One GET of [u] on a connected socket: over TLS for https (the name in
+     * SNI, the certificate checked against it), plain otherwise. No redirects.
+     */
+    private fun exchange(plain: Socket, u: URL, host: String, port: Int, https: Boolean): String {
+        val stream: Socket = if (https) {
+            val tls = (SSLSocketFactory.getDefault() as SSLSocketFactory).createSocket(plain, host, port, true) as SSLSocket
+            runCatching { tls.sslParameters = tls.sslParameters.apply { serverNames = listOf(SNIHostName(host)) } }
+            tls.soTimeout = TIMEOUT_MS
+            tls.startHandshake()
+            if (!HttpsURLConnection.getDefaultHostnameVerifier().verify(host, tls.session)) {
+                throw SSLPeerUnverifiedException("the certificate is not for $host")
+            }
+            tls
+        } else {
+            plain
+        }
+        val path = u.path.ifEmpty { "/" } + (u.query?.let { "?$it" } ?: "")
+        val name = if (host.contains(':')) "[$host]" else host
+        val hostHeader = if (port != (if (https) 443 else 80)) "$name:$port" else name
+        val request = "GET $path HTTP/1.1\r\nHost: $hostHeader\r\nAccept: text/plain,text/markdown,*/*\r\n" +
+            "User-Agent: olcOS-android\r\nConnection: close\r\n\r\n"
+        stream.getOutputStream().write(request.toByteArray(Charsets.ISO_8859_1))
+        stream.getOutputStream().flush()
+        val response = AgentHTTPS.readResponse(stream.getInputStream())
+        if (response.status !in 200..299) throw HttpStatus(response.status)
+        return text(response.body)
     }
 
     /** Whether [host] is an address already: nothing for a resolver to name. */
