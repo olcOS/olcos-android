@@ -13,15 +13,24 @@ engine), bound for Android with gomobile.
 
 - `app/` — the application. `app/libs/olcoscore.aar` is the Go core bound with
   gomobile; CI builds it, it is not committed.
-- `scripts/build-core.sh` — binds the core: the olcrtc `mobile` package, the
-  tun2socks glue (`tunstack`), the bonding client (`bond`) and the olcos Xray
-  engine, from the same `gomobile/` wrapper module the iOS app uses.
+- `olcos-core/` — the [olcOS/olcos-core](https://github.com/olcOS/olcos-core)
+  submodule: the Go core and the server side, shared with the iOS app (the
+  olcrtc client with the olcOS commits, the gomobile module with `tunstack`,
+  `bond` and the server agent, the Xray engine, `srv.sh` and the other server
+  scripts).
+- `scripts/build-core.sh` — binds the core with olcos-core's
+  `scripts/build-android.sh`: the olcrtc `mobile` package, the tun2socks glue
+  (`tunstack`), the bonding client (`bond`) and the olcos Xray engine.
+- `scripts/sync-core-assets.sh` — copies what the app carries for the server
+  from the submodule into the assets (see below); run it after moving the
+  submodule.
 - `.github/workflows/ci.yml` — builds the core and a debug APK on every push;
   the APK is the run's artifact.
 
-The Go sources live with the iOS app for now (`gomobile/` in olcos-ios-dev,
-published as the olcos-ios-build snapshot); CI checks that snapshot out next
-to this repository. Moving them to olcos-core is the next step.
+A change to the core or to a server script is made in olcos-core first; then
+the submodule here moves to that commit. `Maintenance.CORE_PIN` must stay the
+upstream commit olcos-core is based on (`OLCRTC_COMMIT` in
+`olcos-core/olcrtc.upstream`); CI checks it.
 
 ## Getting connections
 
@@ -47,9 +56,8 @@ and from then on signs every request with that key, the way the iOS app does.
 The server page shows the agent's status and follows its events; it starts,
 stops and restarts rooms and reads their logs. An owner also changes rooms,
 adds and removes protocols and rotates the key: the same scripts the iOS app
-runs over SSH (`app/src/main/assets/scripts/` holds copies of
-`add-carrier.sh` and `rotate-key.sh`; keep them identical to the iOS ones),
-run through the agent's `exec`.
+runs over SSH (`add-carrier.sh` and `rotate-key.sh` from olcos-core, in
+`app/src/main/assets/scripts/`), run through the agent's `exec`.
 
 ## Installing a server from the app
 
@@ -63,10 +71,10 @@ in the Go image, the server in the chosen room. Then it builds the agent on
 the server from the Go sources it carries, initialises it with this phone as
 the owner, stores the status scripts and starts the systemd unit. What comes
 back is saved as a connection and a managed server with its SSH login kept,
-so the server page can reinstall the agent later. `srv.sh`, the status
-scripts and the agent sources are copied into the assets by CI from the core
-snapshot (`app/src/main/assets/scripts/srv.sh`, `scripts/agent-status/`,
-`agent/`); they are not committed. Telemost, VK and SaluteJazz
+so the server page can reinstall the agent later. `srv.sh`, the core patch
+series, the status scripts and the agent and bond sources are copied into
+the assets from olcos-core by `scripts/sync-core-assets.sh`
+(`app/src/main/assets/scripts/`, `agent/`, `bond/`); they are not committed. Telemost, VK and SaluteJazz
 rooms are made from the phone (the same flows as the server page) or pasted.
 An MTS Link room is a permanent meeting of the owner's own MTS Link
 account: pasted as its link, or made in the app from the saved sign-in

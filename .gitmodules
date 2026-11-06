@@ -1,0 +1,3 @@
+[submodule "olcos-core"]
+	path = olcos-core
+	url = https://github.com/olcOS/olcos-core.git

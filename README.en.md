@@ -55,10 +55,20 @@ How whitelists work, how to install the app and how to set up a server is explai
 
 ## Building
 
-You need JDK 17, the Android SDK with the NDK, and Go (the version is set in the core's `gomobile/go.mod`). The Go core
-lives in [olcos-ios](https://github.com/olcOS/olcos-ios) and is bound into `app/libs/olcoscore.aar` by
-`scripts/build-core.sh`. How the app is put together, how CI builds the core and the APK, and which link formats are
-supported is described in [docs/development.md](docs/development.md).
+You need JDK 17, the Android SDK with the NDK, and Go (the version is set in `olcos-core/mobile/go.mod`). The Go core
+and the server side live in [olcOS/olcos-core](https://github.com/olcOS/olcos-core), included as the `olcos-core/`
+submodule:
+
+```bash
+git clone --recurse-submodules https://github.com/olcOS/olcos-android.git
+cd olcos-android
+bash scripts/build-core.sh          # the core -> app/libs/olcoscore.aar
+bash scripts/sync-core-assets.sh    # srv.sh, the core patch and the agent sources -> assets
+gradle assembleDebug
+```
+
+How the app is put together, how CI builds the core and the APK, and which link formats are supported is described
+in [docs/development.md](docs/development.md).
 
 ## Bugs and security
 

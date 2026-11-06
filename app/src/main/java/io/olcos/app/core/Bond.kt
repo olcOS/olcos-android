@@ -17,17 +17,18 @@ import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 
 /**
- * The server side of bonding (gomobile/bond) and the whole-server connection
+ * The server side of bonding (olcos-core mobile/bond) and the whole-server connection
  * it carries, as the iOS app has them (SSHRunner+Bond, ServerBundle,
  * BundleSync). The olcos-bond program runs in its own container on the host
  * network; the lanes' olcrtc exits on the server dial its public address, so
  * one port carries every lane back together. It answers only hellos signed
  * with the server's tunnel key (~/.olcrtc_key, mounted read-only).
  *
- * The app carries the Go sources (the `bond` folder of the assets, copied by
- * CI from the core snapshot) and the server builds them once in the Go image
- * the olcrtc install already uses; a newer app rebuilds when its sources
- * differ (`version`, the same digest as the iOS bondVersion). The script
+ * The app carries the Go sources (the `bond` folder of the assets, copied
+ * from olcos-core by scripts/sync-core-assets.sh) and the server builds them
+ * once in the Go image the olcrtc install already uses; a newer app rebuilds
+ * when its sources differ (`version`, the same digest as the iOS
+ * bondVersion). The script
  * prints OLCOS_BOND_PORT=, or OLCOS_BOND_ERROR=<reason> with exit 0, like
  * the invite server. It runs through the agent's exec when this phone is an
  * owner, else over SSH when the phone set the server up.

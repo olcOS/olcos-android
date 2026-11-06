@@ -54,10 +54,19 @@ olcOS ведёт трафик телефона через ваш собстве�
 
 ## Сборка
 
-Нужны JDK 17, Android SDK с NDK и Go (версия указана в `gomobile/go.mod` ядра). Ядро на Go живёт в репозитории
-[olcos-ios](https://github.com/olcOS/olcos-ios) и собирается в `app/libs/olcoscore.aar` скриптом
-`scripts/build-core.sh`. Как устроено приложение, как CI собирает ядро и APK и какие форматы ссылок поддерживаются,
-описано в [docs/development.md](docs/development.md).
+Нужны JDK 17, Android SDK с NDK и Go (версия указана в `olcos-core/mobile/go.mod`). Ядро на Go и серверная часть
+лежат в репозитории [olcOS/olcos-core](https://github.com/olcOS/olcos-core), он подключён подмодулем `olcos-core/`:
+
+```bash
+git clone --recurse-submodules https://github.com/olcOS/olcos-android.git
+cd olcos-android
+bash scripts/build-core.sh          # ядро -> app/libs/olcoscore.aar
+bash scripts/sync-core-assets.sh    # srv.sh, патч ядра и исходники агента -> assets
+gradle assembleDebug
+```
+
+Как устроено приложение, как CI собирает ядро и APK и какие форматы ссылок поддерживаются, описано в
+[docs/development.md](docs/development.md).
 
 ## Ошибки и безопасность
 

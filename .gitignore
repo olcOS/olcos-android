@@ -7,10 +7,8 @@ local.properties
 .DS_Store
 app/libs/olcoscore.aar
 app/libs/olcoscore-sources.jar
-/core/
-app/src/main/assets/scripts/olcrtc-core.patch
-# The server installer and the agent sources: copied from the core snapshot by CI.
-app/src/main/assets/scripts/srv.sh
-app/src/main/assets/scripts/agent-status/
+# What the app carries for the server, copied from the olcos-core submodule by
+# scripts/sync-core-assets.sh (CI runs it before every build).
+app/src/main/assets/scripts/
 app/src/main/assets/agent/
 app/src/main/assets/bond/

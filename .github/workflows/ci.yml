@@ -17,46 +17,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - name: Checkout the app
+      # The Go core and the server side are the olcos-core submodule
+      # (olcOS/olcos-core), the same core the iOS app binds.
+      - name: Checkout the app and the olcos-core submodule
         uses: actions/checkout@v5
         with:
-          persist-credentials: false
-
-      # The Go core lives with the iOS app; its public snapshot carries the
-      # gomobile wrapper, the olcrtc core and the olcos engine.
-      - name: Checkout the Go core snapshot
-        uses: actions/checkout@v5
-        with:
-          repository: Hotelk52339/olcos-ios-build
-          ref: main
-          path: core
           submodules: recursive
           persist-credentials: false
 
-      # The closed core patch series comes from a repository secret, like the
-      # iOS build; without it the bare pinned core is bound.
-      - name: Materialize the closed core patch series
-        env:
-          CORE_PATCH_B64: ${{ secrets.CORE_PATCH_B64 }}
+      # The pinned upstream commit the app names must be the one olcos-core
+      # is based on, or a server the app installs runs another core.
+      - name: Check the core pin
         run: |
-          if [ -n "$CORE_PATCH_B64" ]; then
-            printf '%s' "$CORE_PATCH_B64" | base64 -d | gunzip > core/scripts/olcrtc-core.patch
-            echo "core patch materialized: $(wc -c < core/scripts/olcrtc-core.patch) bytes"
-          else
-            echo "no core patch secret available; binding the bare pinned core"
-          fi
+          pin=$(sed -n 's/^OLCRTC_COMMIT=\([0-9a-f]\{40\}\)$/\1/p' olcos-core/olcrtc.upstream)
+          grep -q "const val CORE_PIN = \"$pin\"" app/src/main/java/io/olcos/app/core/Maintenance.kt \
+            || { echo "Maintenance.CORE_PIN must be $pin (olcos-core/olcrtc.upstream)" >&2; exit 1; }
 
       - name: Core cache key
         id: corekey
         run: |
-          echo "key=$(git -C core rev-parse HEAD)-$(sha256sum core/scripts/olcrtc-core.patch 2>/dev/null | cut -c1-16 || echo none)-$(sha256sum scripts/build-core.sh | cut -c1-8)" >> "$GITHUB_OUTPUT"
+          echo "key=$(git -C olcos-core rev-parse HEAD)-$(sha256sum scripts/build-core.sh | cut -c1-8)" >> "$GITHUB_OUTPUT"
 
       - name: Restore the bound core
         id: corecache
         uses: actions/cache/restore@v5
         with:
           path: app/libs/olcoscore.aar
-          key: olcoscore-aar-v1-${{ steps.corekey.outputs.key }}
+          key: olcoscore-aar-v2-${{ steps.corekey.outputs.key }}
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -68,16 +55,16 @@ jobs:
         if: steps.corecache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
         with:
-          go-version-file: core/gomobile/go.mod
+          go-version-file: olcos-core/mobile/go.mod
           cache-dependency-path: |
-            core/olcrtc-upstream/go.sum
-            core/olcos-core/go.sum
-            core/gomobile/go.mod
+            olcos-core/go.sum
+            olcos-core/mobile/go.sum
+            olcos-core/olcrtc/go.sum
 
       - name: Bind the Go core
         if: steps.corecache.outputs.cache-hit != 'true'
         timeout-minutes: 30
-        run: bash scripts/build-core.sh core app/libs/olcoscore.aar
+        run: bash scripts/build-core.sh app/libs/olcoscore.aar
 
       - name: Save the bound core
         if: steps.corecache.outputs.cache-hit != 'true'
@@ -91,34 +78,11 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      # The app carries the series to put on a server it updates, like the
-      # iOS app does; it is never committed.
-      - name: Give the app the core patch series
-        run: |
-          if [ -s core/scripts/olcrtc-core.patch ]; then
-            cp core/scripts/olcrtc-core.patch app/src/main/assets/scripts/olcrtc-core.patch
-            echo "core patch in the assets: $(wc -c < app/src/main/assets/scripts/olcrtc-core.patch) bytes"
-          else
-            echo "no core patch: a server updated from this build runs the bare pinned core"
-          fi
-
-      # The server installer the app runs over SSH: srv.sh, the agent's status
-      # scripts, the agent's Go sources and the bond endpoint's Go sources
-      # (both built on the server), from the same snapshot; never committed.
-      - name: Give the app the server installer
-        run: |
-          mkdir -p app/src/main/assets/scripts/agent-status app/src/main/assets/agent/cmd/olcos-agent app/src/main/assets/bond/cmd/olcos-bond
-          cp core/scripts/srv.sh app/src/main/assets/scripts/srv.sh
-          cp core/scripts/agent-status/*.sh app/src/main/assets/scripts/agent-status/
-          for f in core/gomobile/agent/*.go; do
-            case "$f" in *_test.go) ;; *) cp "$f" app/src/main/assets/agent/ ;; esac
-          done
-          cp core/gomobile/agent/cmd/olcos-agent/main.go app/src/main/assets/agent/cmd/olcos-agent/main.go
-          for f in core/gomobile/bond/*.go; do
-            case "$f" in *_test.go) ;; *) cp "$f" app/src/main/assets/bond/ ;; esac
-          done
-          cp core/gomobile/bond/cmd/olcos-bond/main.go app/src/main/assets/bond/cmd/olcos-bond/main.go
-          echo "installer in the assets: srv.sh $(wc -c < app/src/main/assets/scripts/srv.sh) bytes, $(ls app/src/main/assets/agent/*.go | wc -l) agent sources, $(ls app/src/main/assets/bond/*.go | wc -l) bond sources"
+      # What the app carries for the server (srv.sh, the core patch series,
+      # add-carrier.sh, rotate-key.sh, the agent's status scripts, the agent
+      # and bond sources), from the same olcos-core commit; never committed.
+      - name: Give the app the server side
+        run: bash scripts/sync-core-assets.sh
 
       - name: Materialize the shared debug keystore
         env:
