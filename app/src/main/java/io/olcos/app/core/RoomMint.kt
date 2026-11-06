@@ -72,6 +72,8 @@ object RoomMint {
                 }
             }
         }
+        // SaluteJazz makes a meeting without an account, as the room auto-update already does.
+        "salutejazz" -> Outcome.Made(RoomServices.SaluteJazz.create())
         // The request the app learned from the owner's own lesson, replayed silently from the
         // signed-in page. Anything the replay cannot do opens the sheet (where the owner makes
         // the meeting himself and the app still takes the link) with a one-line reason.
