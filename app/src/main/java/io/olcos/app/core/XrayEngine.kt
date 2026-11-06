@@ -39,14 +39,19 @@ object XrayEngine {
 
     class InvokeError(method: String, message: String) : Exception("$method: $message")
 
-    /** Binds the SOCKS5 listener on `port` for the link's server. Throws with the core's words. */
+    /**
+     * Binds the SOCKS5 listener on `port` for the link's server; with `socksUser` and `socksPass`
+     * it requires that login. Throws with the core's words.
+     */
     @Synchronized
-    fun start(link: XrayLink, port: Int, directRules: String = "") {
+    fun start(link: XrayLink, port: Int, directRules: String = "", socksUser: String = "", socksPass: String = "") {
         // Only one session per Runtime: a leftover from an interrupted stop must not fail this start.
         runtime.invoke("engine.stop", "{}")
         lastHealth = null
         val input = JSONObject().put("uri", link.encode()).put("socks_port", port)
-            .also { if (directRules.isNotEmpty()) it.put("direct", directRules) }.toString()
+            .also { if (directRules.isNotEmpty()) it.put("direct", directRules) }
+            .also { if (socksUser.isNotEmpty() && socksPass.isNotEmpty()) it.put("socks_user", socksUser).put("socks_pass", socksPass) }
+            .toString()
         val result = decode(runtime.invoke("engine.start", input), "engine.start")
         val addr = result.optString("socks_addr")
         if (addr.substringAfterLast(':').toIntOrNull() != port) {

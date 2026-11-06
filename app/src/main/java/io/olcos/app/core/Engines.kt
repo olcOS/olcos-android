@@ -45,9 +45,14 @@ object Engines {
         }
         is Details.Xray -> {
             OlcrtcEngine.stop()
-            // The Xray listener takes no login; a SOCKS client that offers none beside it still connects.
-            XrayEngine.start(d.link, s.port, s.directRules)
-            SessionInfo(s.port, 1, false)
+            // The listener asks for this session's login (the VPN's random pair, or the proxy
+            // login from Settings), so another app on the phone cannot use it; with no full
+            // pair it stays open, as the core requires both or neither.
+            val login = s.socksUser.isNotEmpty() && s.socksPass.isNotEmpty()
+            val user = if (login) s.socksUser else ""
+            val pass = if (login) s.socksPass else ""
+            XrayEngine.start(d.link, s.port, s.directRules, user, pass)
+            SessionInfo(s.port, 1, false, socksUser = user, socksPass = pass)
         }
     }
 

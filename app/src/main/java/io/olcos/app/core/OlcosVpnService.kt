@@ -156,7 +156,7 @@ class OlcosVpnService : VpnService() {
                 val dnsHost = AppSettings.dnsHost(settings.dns.value)
                 // A login of this session's own for the loopback listener: the
                 // packet path signs in with it, so another app on the phone
-                // cannot use the port. The Xray listener takes none (Engines).
+                // cannot use the port (olcrtc and Xray alike, see Engines).
                 val socksUser = randomLogin()
                 val socksPass = randomLogin()
                 val session = Engines.start(record, { generation == myGeneration }, OlcrtcEngine.StartSettings(
