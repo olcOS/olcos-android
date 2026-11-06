@@ -134,11 +134,12 @@ data class OlcrtcLink(
                         val eq = pair.indexOf('=')
                         if (eq <= 0) continue
                         val value = pair.substring(eq + 1).trim().toIntOrNull() ?: continue
+                        // A link is untrusted input: VP8 numbers outside what the core runs on are brought into range.
                         when (pair.substring(0, eq).trim()) {
-                            "vp8-fps" -> fps = value
-                            "vp8-batch" -> batch = value
-                            "fps" -> if (sei) seiFPS = value else fps = value
-                            "batch" -> if (sei) seiBatch = value else batch = value
+                            "vp8-fps" -> fps = value.coerceIn(LINK_FPS_RANGE)
+                            "vp8-batch" -> batch = value.coerceIn(LINK_BATCH_RANGE)
+                            "fps" -> if (sei) seiFPS = value else fps = value.coerceIn(LINK_FPS_RANGE)
+                            "batch" -> if (sei) seiBatch = value else batch = value.coerceIn(LINK_BATCH_RANGE)
                             "frag" -> if (sei) seiFrag = value
                             "ack-ms" -> if (sei) seiACK = value
                         }
@@ -150,6 +151,10 @@ data class OlcrtcLink(
             return OlcrtcLink(carrier, transport, roomID, key, clientID, fps, batch, mimo,
                 seiFPS = seiFPS, seiBatch = seiBatch, seiFrag = seiFrag, seiACK = seiACK)
         }
+
+        /** The VP8 frame rate the core accepts (1–120) and the packets per frame the settings allow (1–256). */
+        val LINK_FPS_RANGE = 1..120
+        val LINK_BATCH_RANGE = 1..256
 
         fun carrierLabel(carrier: String): String = when (carrier) {
             "telemost" -> "Yandex Telemost"

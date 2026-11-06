@@ -62,6 +62,18 @@ class OlcrtcLinkTest {
         assertEquals(null, link.vp8Batch)
     }
 
+    @Test fun vp8NumbersOutOfRangeAreBroughtIntoRange() {
+        val big = OlcrtcLink.parse("olcrtc://jitsi?vp8channel<vp8-fps=500&vp8-batch=1000000>@room-vp8#$key")!!
+        assertEquals(120, big.vp8FPS)
+        assertEquals(256, big.vp8Batch)
+        val small = OlcrtcLink.parse("olcrtc://jitsi?vp8channel[fps=0,batch=-3]@room-vp8#$key")!!
+        assertEquals(1, small.vp8FPS)
+        assertEquals(1, small.vp8Batch)
+        val fine = OlcrtcLink.parse("olcrtc://jitsi?vp8channel[vp8-fps=30,vp8-batch=64]@room-vp8#$key")!!
+        assertEquals(30, fine.vp8FPS)
+        assertEquals(64, fine.vp8Batch)
+    }
+
     @Test fun aSeiLinkIsWrittenBackWithItsNumbers() {
         val text = "olcrtc://jitsi?seichannel[fps=25,batch=8,frag=900,ack-ms=40]@room-sei#$key"
         val link = OlcrtcLink.parse(text)!!
