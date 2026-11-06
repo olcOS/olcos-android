@@ -312,7 +312,7 @@
     <string name="settings_section_advanced">Advanced</string>
     <string name="settings_advanced_show">Show advanced settings</string>
     <string name="settings_advanced_hide">Hide advanced settings</string>
-    <string name="forget_server_message">The server leaves the list on this phone. This phone stays registered on the server until its owner revokes it.</string>
+    <string name="forget_server_message">The server leaves the list on this phone, along with its SSH password or key and the remembered server key. This phone stays registered on the server until its owner revokes it.</string>
     <string name="device_revoke_message_fmt">Revoke access for \"%1$s\"? The device loses server access and stops getting updates.</string>
 
     <!-- Installing one's own server on one's own VPS over SSH (AddServerScreen, ServerInstall). -->

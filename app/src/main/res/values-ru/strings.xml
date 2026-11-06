@@ -316,7 +316,7 @@
     <string name="settings_section_advanced">Дополнительно</string>
     <string name="settings_advanced_show">Показать дополнительные настройки</string>
     <string name="settings_advanced_hide">Скрыть дополнительные настройки</string>
-    <string name="forget_server_message">Сервер пропадёт из списка на этом телефоне. На самом сервере телефон остаётся зарегистрированным, пока владелец не отзовёт его.</string>
+    <string name="forget_server_message">Сервер пропадёт из списка на этом телефоне, вместе с паролем или ключом SSH и запомненным ключом сервера. На самом сервере телефон остаётся зарегистрированным, пока владелец не отзовёт его.</string>
     <string name="device_revoke_message_fmt">Отозвать доступ у «%1$s»? Устройство потеряет доступ к серверу и перестанет получать обновления.</string>
 
     <!-- Установка своего сервера на свой VPS по SSH (AddServerScreen, ServerInstall). -->

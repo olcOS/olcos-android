@@ -84,6 +84,7 @@ import io.olcos.app.model.Details
 import io.olcos.app.model.DeviceInvite
 import io.olcos.app.model.OlcrtcLink
 import io.olcos.app.model.ServerRecord
+import io.olcos.app.data.SSHHostKeys
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -949,6 +950,14 @@ fun ServerScreen(serverID: String, onBack: () -> Unit) {
                     forgetDialog = false
                     servers.remove(server.id)
                     ServerRooms.forget(server.id)
+                    // The SSH login, the keys of the server's invites and its
+                    // host key go with it: a server reinstalled and added again
+                    // is met as new rather than refused as changed.
+                    AppGraph.secrets.forget(server.id)
+                    server.invites.forEach { AppGraph.secrets.forgetInviteKey(it.token) }
+                    if (servers.servers.value.none { it.host == server.host && it.sshPort == server.sshPort }) {
+                        SSHHostKeys(context).forget(server.host, server.sshPort)
+                    }
                     onBack()
                 }) { Text(stringResource(R.string.action_confirm)) }
             },
