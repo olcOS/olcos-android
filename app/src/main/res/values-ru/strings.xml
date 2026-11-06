@@ -430,7 +430,7 @@
     <string name="list_section_own_links">Свои ссылки</string>
     <string name="list_section_own_links_footer">То, что вы добавили сами: ссылки, QR-коды и файлы.</string>
     <string name="list_extras_title">Подписки и Xray</string>
-    <string name="list_extras_empty">Свои подписки, готовые белые списки и серверы Xray</string>
+    <string name="list_extras_empty">Свои подписки и серверы Xray</string>
     <string name="list_extras_summary_fmt">Подписок: %1$d · подключений: %2$d</string>
     <string name="list_own_server_header_fmt">Мой сервер · %1$s</string>
     <string name="list_shared_server_header_fmt">Сервер · %1$s</string>

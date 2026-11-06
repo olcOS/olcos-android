@@ -426,7 +426,7 @@
     <string name="list_section_own_links">Your links</string>
     <string name="list_section_own_links_footer">What you added yourself: links, QR codes and files.</string>
     <string name="list_extras_title">Subscriptions and Xray</string>
-    <string name="list_extras_empty">Your subscriptions, ready-made lists and Xray servers</string>
+    <string name="list_extras_empty">Your subscriptions and Xray servers</string>
     <string name="list_extras_summary_fmt">Subscriptions: %1$d · connections: %2$d</string>
     <string name="list_own_server_header_fmt">My server · %1$s</string>
     <string name="list_shared_server_header_fmt">Server · %1$s</string>
