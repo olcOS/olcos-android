@@ -17,10 +17,11 @@
 # SSHRunner.addCarrier) and driven by env vars:
 #   OLCRTC_BASE_CONTAINER — required; the olcrtc-server-* container of the
 #                           primary install (resolves deploy dir, binary, key)
-#   OLCRTC_CARRIER        — required; telemost | wbstream | jitsi | vkcalls | salutejazz
+#   OLCRTC_CARRIER        — required; telemost | wbstream | jitsi | vkcalls | salutejazz | mtslink
 #   OLCRTC_TRANSPORT      — required; datachannel | vp8channel | seichannel | videochannel
 #   OLCRTC_ROOM_ID        — required for telemost/wbstream/vkcalls (the call link)/
-#                           salutejazz (<code>:<password>). jitsi: a full
+#                           salutejazz (<code>:<password>)/mtslink (the permanent
+#                           meeting link, https://my.mts-link.ru/j/…). jitsi: a full
 #                           http(s) URL (verbatim), a short room name
 #                           (prefixed with the base), or empty (auto-generated)
 #   OLCRTC_JITSI_URL      — jitsi base URL (same default as srv.sh)
@@ -69,9 +70,9 @@ fi
 
 PROVIDER="${OLCRTC_CARRIER:?OLCRTC_CARRIER is required}"
 case "$PROVIDER" in
-    telemost|wbstream|jitsi|vkcalls|salutejazz) : ;;
+    telemost|wbstream|jitsi|vkcalls|salutejazz|mtslink) : ;;
     *)
-        echo "ERROR: unsupported carrier '${PROVIDER}' (expected telemost, wbstream, jitsi, vkcalls or salutejazz)" >&2
+        echo "ERROR: unsupported carrier '${PROVIDER}' (expected telemost, wbstream, jitsi, vkcalls, salutejazz or mtslink)" >&2
         exit 1
         ;;
 esac
@@ -104,7 +105,7 @@ fi
 # sibling would restart forever on "unsupported provider". The provider names
 # are string literals in the binary.
 case "$PROVIDER" in
-    vkcalls|salutejazz)
+    vkcalls|salutejazz|mtslink)
         if ! grep -q "$PROVIDER" "$WORK_DIR/olcrtc" 2>/dev/null; then
             echo "ERROR: this server's core predates ${PROVIDER}; update the server first (Manage server → Update)" >&2
             exit 1
