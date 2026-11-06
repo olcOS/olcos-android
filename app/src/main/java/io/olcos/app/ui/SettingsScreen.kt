@@ -466,6 +466,14 @@ fun SettingsScreen(onOpenLogs: () -> Unit) {
                 )
                 Text(stringResource(R.string.settings_vp8_mtslink_note), style = Type.caption, color = p.textSecondary,
                     modifier = Modifier.padding(top = Metrics.s1))
+                if (vp8FPS != AppSettings.DEFAULT_VP8_FPS || vp8Batch != AppSettings.DEFAULT_VP8_BATCH) {
+                    OlcTextButton(
+                        onClick = { settings.setVP8(AppSettings.DEFAULT_VP8_FPS, AppSettings.DEFAULT_VP8_BATCH) },
+                        enabled = !locked,
+                    ) {
+                        Text(stringResource(R.string.settings_vp8_reset_fmt, AppSettings.DEFAULT_VP8_FPS, AppSettings.DEFAULT_VP8_BATCH))
+                    }
+                }
             }
         }
         Spacer(Modifier.height(Metrics.s6))

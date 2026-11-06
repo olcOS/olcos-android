@@ -189,6 +189,7 @@
     <string name="settings_vp8_batch_fmt">VP8, пакетов в кадре: %1$d</string>
     <string name="settings_vp8_hint">Для комнат, где трафик идёт как видео (VP8 — данные под видом видеопотока). Ссылка со своими параметрами сохраняет их.</string>
     <string name="settings_vp8_mtslink_note">Для МТС Линк приложение использует не менее 60 кадров в секунду и 64 пакетов на кадр.</string>
+    <string name="settings_vp8_reset_fmt">Вернуть по умолчанию: %1$d кадров, %2$d пакетов</string>
     <string name="settings_socks_auth">Логин для прокси</string>
     <string name="settings_socks_auth_hint">Приложениям нужно указать этот логин, чтобы пользоваться прокси. Только в режиме прокси.</string>
     <string name="settings_socks_user">Пользователь</string>

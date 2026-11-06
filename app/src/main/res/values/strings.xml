@@ -187,6 +187,7 @@
     <string name="settings_vp8_batch_fmt">VP8 packets per frame: %1$d</string>
     <string name="settings_vp8_hint">For rooms carried as video (VP8: data dressed as a video stream). A link with its own tuning keeps it.</string>
     <string name="settings_vp8_mtslink_note">For MTS Link the app uses at least 60 frames per second and 64 packets per frame.</string>
+    <string name="settings_vp8_reset_fmt">Back to the defaults: %1$d frames, %2$d packets</string>
     <string name="settings_socks_auth">Login for the proxy</string>
     <string name="settings_socks_auth_hint">Apps must give this login to use the proxy. Proxy mode only.</string>
     <string name="settings_socks_user">User</string>
