@@ -24,9 +24,15 @@ class MaintenanceTest {
         assertEquals(listOf("vp8channel"), Maintenance.allowedTransports("mtslink"))
     }
 
-    @Test fun everyOtherProtocolIsOfferedEveryTransport() {
-        for (carrier in Maintenance.CARRIERS - "mtslink") {
-            assertEquals(carrier, Maintenance.TRANSPORTS, Maintenance.allowedTransports(carrier))
+    /** The core's compatibility matrix (olcrtc docs/settings.md), the transports the app offers. */
+    @Test fun eachProtocolIsOfferedWhatTheCoreCarriesOnIt() {
+        assertEquals(listOf("vp8channel"), Maintenance.allowedTransports("telemost"))
+        assertEquals(listOf("vp8channel"), Maintenance.allowedTransports("vkcalls"))
+        assertEquals(listOf("datachannel"), Maintenance.allowedTransports("salutejazz"))
+        assertEquals(Maintenance.TRANSPORTS, Maintenance.allowedTransports("jitsi"))
+        for (carrier in Maintenance.CARRIERS) {
+            assertTrue(carrier, Maintenance.allowedTransports(carrier).isNotEmpty())
+            assertTrue(carrier, Maintenance.TRANSPORTS.containsAll(Maintenance.allowedTransports(carrier)))
         }
     }
 
@@ -36,12 +42,17 @@ class MaintenanceTest {
         }
     }
 
-    @Test fun pickingAnotherProtocolKeepsTheTransport() {
-        for (carrier in Maintenance.CARRIERS - "mtslink") {
+    @Test fun pickingAProtocolKeepsATransportItCarriesAndSwitchesOtherwise() {
+        for (carrier in Maintenance.CARRIERS) {
+            val allowed = Maintenance.allowedTransports(carrier)
             for (current in Maintenance.TRANSPORTS) {
-                assertEquals("$carrier/$current", current, Maintenance.transportFor(carrier, current))
+                val expected = if (current in allowed) current else allowed.first()
+                assertEquals("$carrier/$current", expected, Maintenance.transportFor(carrier, current))
             }
         }
+        assertEquals("datachannel", Maintenance.transportFor("salutejazz", "vp8channel"))
+        assertEquals("vp8channel", Maintenance.transportFor("telemost", "datachannel"))
+        assertEquals("seichannel", Maintenance.transportFor("jitsi", "seichannel"))
     }
 
     @Test fun aRoomChangeGivesTheServerTheTypedIceHint() {

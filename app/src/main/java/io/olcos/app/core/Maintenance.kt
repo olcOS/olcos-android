@@ -53,12 +53,17 @@ object Maintenance {
     }
 
     /**
-     * The transports a protocol can carry, of [TRANSPORTS]. MTS Link's SFU
-     * relays no data between guests and forwards no VP8, so it carries
-     * vp8channel alone (the core dresses its frames as VP9 there).
+     * The transports a protocol can carry, of [TRANSPORTS], as the core's
+     * compatibility matrix has them (olcrtc docs/settings.md; the iOS
+     * CarrierTransportMatrix). Telemost dropped its data channel and takes no
+     * SEI, VK's SFU bridges no data channel, and MTS Link's relays no data
+     * between guests and forwards no VP8 (the core dresses its frames as VP9
+     * there): the three carry vp8channel alone. SaluteJazz gives a guest no
+     * video track, so it carries the data channel alone. Jitsi carries all.
      */
     fun allowedTransports(carrier: String): List<String> = when (carrier) {
-        "mtslink" -> listOf("vp8channel")
+        "telemost", "vkcalls", "mtslink" -> listOf("vp8channel")
+        "salutejazz" -> listOf("datachannel")
         else -> TRANSPORTS
     }
 
