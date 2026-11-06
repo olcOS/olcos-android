@@ -149,7 +149,9 @@ object Maintenance {
             "fi",
             "CACHE_DIR=\"\$HOME/.cache/olcrtc\"",
             "mkdir -p \"\$CACHE_DIR/gomod\" \"\$CACHE_DIR/gobuild\"",
-            "podman run --rm --network host -v \"\$DEPLOY_DIR\":/app:Z -v \"\$CACHE_DIR/gomod\":/go/pkg/mod:Z -v \"\$CACHE_DIR/gobuild\":/root/.cache/go-build:Z -w /app $GO_IMAGE sh -c \"go mod download && go build -trimpath -ldflags='-s -w' -o olcrtc ./cmd/olcrtc\"",
+            // x/net as srv.sh builds it: the pinned core requires v0.55.0, whose DNS parser
+            // panics on a malformed SVCB/HTTPS record (GO-2026-5942).
+            "podman run --rm --network host -v \"\$DEPLOY_DIR\":/app:Z -v \"\$CACHE_DIR/gomod\":/go/pkg/mod:Z -v \"\$CACHE_DIR/gobuild\":/root/.cache/go-build:Z -w /app $GO_IMAGE sh -c \"go get golang.org/x/net@v0.62.0 && go mod download && go build -trimpath -ldflags='-s -w' -o olcrtc ./cmd/olcrtc\"",
             "recreate_always() {",
             "    c=\"\$1\"",
             "    policy=\$(podman inspect --format '{{.HostConfig.RestartPolicy.Name}}' \"\$c\" 2>/dev/null) || return 0",
