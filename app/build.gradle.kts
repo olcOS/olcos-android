@@ -13,11 +13,12 @@ android {
         applicationId = "io.olcos.app"
         minSdk = 26
         targetSdk = 35
-        // Public releases are tagged v<versionName>.<versionCode> in olcOS/olcos
-        // (v3.0.3-beta for 3.0, code 3). Android installs an update only over a
-        // lower versionCode, so bump it for every release.
-        versionCode = 3
-        versionName = "3.0"
+        // Public releases are tagged v<versionName> in olcOS/olcos (v3.5). The tag
+        // used to carry the code too: 3.0 with code 3 was v3.0.3-beta. Android
+        // installs an update only over a lower versionCode, so bump it for every
+        // release.
+        versionCode = 4
+        versionName = "3.5"
         // The Go core (scripts/build-core.sh) is built for arm64 and amd64 only.
         // Without this filter the AndroidX libraries add armeabi-v7a/x86 folders,
         // so a 32-bit phone could install the app and then fail to load the core.
