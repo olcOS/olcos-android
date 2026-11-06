@@ -93,7 +93,7 @@
     <string name="dialog_add_body">Добавляет на этот сервер ещё один протокол. Его комнату можно создать здесь или вставить из сервиса.</string>
     <string name="label_service">Сервис</string>
     <string name="label_transport">Транспорт</string>
-    <string name="transport_hint">DataChannel — самый быстрый, там, где сервис его поддерживает. VP8 — данные под видом видеопотока. SEI — более медленный запасной вариант.</string>
+    <string name="transport_hint">VP8 — данные под видом видео, самый быстрый. DataChannel — канал данных звонка: для SaluteJazz и как запасной на Jitsi. SEI — медленный запасной вариант.</string>
     <string name="maintenance_done">Готово</string>
     <string name="maintenance_failed_fmt">Не удалось: %1$s</string>
     <string name="records_updated_fmt">обновлено подключений: %1$d</string>
@@ -337,7 +337,7 @@
     <string name="add_server_section_server">Сервер</string>
     <string name="add_server_name">Название сервера</string>
     <string name="add_server_room">Комната</string>
-    <string name="add_server_room_jitsi">Необязательно: имя комнаты или полная ссылка; пустое поле — случайная комната. Публичные серверы Jitsi, аккаунт не нужен. Рекомендуется DataChannel; видеотранспорты тоже работают.</string>
+    <string name="add_server_room_jitsi">Необязательно: имя комнаты или полная ссылка; пустое поле — случайная комната. Публичные серверы Jitsi, аккаунт не нужен. Рекомендуется VP8; DataChannel и SEI тоже работают.</string>
     <string name="add_server_room_telemost">Ссылка или номер комнаты Telemost. Нажмите «Создать комнату», чтобы создать её через ваш аккаунт Яндекса, или вставьте созданную на telemost.yandex.ru.</string>
     <string name="add_server_room_vk">Ссылка на звонок VK (vk.com/call/join/…). Нажмите «Создать комнату» — приложение создаст её через ваш вход в VK, или вставьте ссылку из приложения VK. Идёт как видео (VP8): около 13–19 Мбит/с.</string>
     <string name="add_server_room_salutejazz">Встреча SaluteJazz в виде код:пароль или её ссылка. Аккаунт не нужен: нажмите «Создать комнату», и приложение само создаст её. Идёт как данные (DataChannel).</string>

@@ -42,6 +42,18 @@ class MaintenanceTest {
         }
     }
 
+    /** A new protocol starts on vp8channel (the fastest measured on Jitsi) wherever it carries it. */
+    @Test fun aNewProtocolStartsOnTheFastestTransportItCarries() {
+        assertEquals("vp8channel", Maintenance.defaultTransport("jitsi"))
+        assertEquals("vp8channel", Maintenance.defaultTransport("telemost"))
+        assertEquals("vp8channel", Maintenance.defaultTransport("vkcalls"))
+        assertEquals("vp8channel", Maintenance.defaultTransport("mtslink"))
+        assertEquals("datachannel", Maintenance.defaultTransport("salutejazz"))
+        for (carrier in Maintenance.CARRIERS) {
+            assertTrue(carrier, Maintenance.defaultTransport(carrier) in Maintenance.allowedTransports(carrier))
+        }
+    }
+
     @Test fun pickingAProtocolKeepsATransportItCarriesAndSwitchesOtherwise() {
         for (carrier in Maintenance.CARRIERS) {
             val allowed = Maintenance.allowedTransports(carrier)

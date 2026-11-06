@@ -91,7 +91,7 @@
     <string name="dialog_add_body">Adds one more protocol to this server. Its room can be made here or pasted from the service.</string>
     <string name="label_service">Service</string>
     <string name="label_transport">Transport</string>
-    <string name="transport_hint">DataChannel is the fastest, where the service supports it. VP8 is data dressed as a video stream. SEI is a slower fallback.</string>
+    <string name="transport_hint">VP8 is data dressed as video, the fastest. DataChannel is the call\'s data channel: for SaluteJazz and as a fallback on Jitsi. SEI is a slow fallback.</string>
     <string name="maintenance_done">Done</string>
     <string name="maintenance_failed_fmt">Failed: %1$s</string>
     <string name="records_updated_fmt">connections updated: %1$d</string>
@@ -333,7 +333,7 @@
     <string name="add_server_section_server">The server</string>
     <string name="add_server_name">Server name</string>
     <string name="add_server_room">Room</string>
-    <string name="add_server_room_jitsi">Optional: a room name or a full link; empty makes a random room. Public Jitsi servers, no account. DataChannel is recommended; the video transports work too.</string>
+    <string name="add_server_room_jitsi">Optional: a room name or a full link; empty makes a random room. Public Jitsi servers, no account. VP8 is recommended; DataChannel and SEI work too.</string>
     <string name="add_server_room_telemost">A Telemost room link or id. Tap \"Make a room\" to create one with your Yandex account, or paste one made at telemost.yandex.ru.</string>
     <string name="add_server_room_vk">A VK call link (vk.com/call/join/…). Tap \"Make a room\" and the app makes one with your VK sign-in, or paste a link from the VK app. Carried as video (VP8): about 13–19 Mbit/s.</string>
     <string name="add_server_room_salutejazz">A SaluteJazz meeting as code:password, or its link. No account needed: tap \"Make a room\" and the app makes the room itself. Carried as data (DataChannel).</string>

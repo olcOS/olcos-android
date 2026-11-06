@@ -125,7 +125,7 @@ fun ServerScreen(serverID: String, onBack: () -> Unit) {
     // unmounts it, and the field comes back as it was left.
     var roomText by rememberSaveable { mutableStateOf("") }
     var addCarrier by rememberSaveable { mutableStateOf("jitsi") }
-    var addTransport by rememberSaveable { mutableStateOf("datachannel") }
+    var addTransport by rememberSaveable { mutableStateOf(Maintenance.defaultTransport("jitsi")) }
     var addRoom by rememberSaveable { mutableStateOf("") }
     // A room being made and the sign-in its maker asked for: the sheet is
     // full-screen, and the maker runs again once it returns.
@@ -1046,7 +1046,7 @@ fun ServerScreen(serverID: String, onBack: () -> Unit) {
                                 selected = addCarrier == c,
                                 onClick = {
                                     addCarrier = c
-                                    addTransport = Maintenance.transportFor(c, addTransport)
+                                    addTransport = Maintenance.defaultTransport(c)
                                     addRoom = ""
                                 },
                                 label = { Text(OlcrtcLink.carrierLabel(c)) },

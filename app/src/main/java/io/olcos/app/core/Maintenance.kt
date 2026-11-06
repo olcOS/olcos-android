@@ -71,6 +71,15 @@ object Maintenance {
     fun transportFor(carrier: String, current: String): String =
         allowedTransports(carrier).let { if (current in it) current else it.first() }
 
+    /**
+     * The transport a new protocol starts on: vp8channel wherever the protocol
+     * carries it, else its only one (SaluteJazz: the data channel). Measured
+     * from a VPS, a vp8channel tunnel on Jitsi carried about 9 Mbit/s each way
+     * and the data channel about 1 Mbit/s down; the person can still pick another.
+     */
+    fun defaultTransport(carrier: String): String =
+        allowedTransports(carrier).let { if ("vp8channel" in it) "vp8channel" else it.first() }
+
     /** The core this app speaks: the pinned commit, the fork that carries it, the image that builds it (AppConstants on iOS). */
     const val CORE_PIN = "0955ba7f2041d1480524292c4af4135a192fe267"
     const val CORE_REPO = "https://github.com/ghostlane-project/olcrtc.git"

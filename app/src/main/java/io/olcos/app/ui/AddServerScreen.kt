@@ -88,7 +88,7 @@ fun AddServerScreen(onDone: (serverID: String) -> Unit, onBack: () -> Unit) {
     var showPassword by rememberSaveable { mutableStateOf(false) }
     var name by rememberSaveable { mutableStateOf("") }
     var carrier by rememberSaveable { mutableStateOf("jitsi") }
-    var transport by rememberSaveable { mutableStateOf("datachannel") }
+    var transport by rememberSaveable { mutableStateOf(Maintenance.defaultTransport("jitsi")) }
     var room by rememberSaveable { mutableStateOf("") }
     var jitsi by rememberSaveable { mutableStateOf(Maintenance.DEFAULT_JITSI_BASE) }
     // Whether this screen saw the run start: only then a finished run opens the server by itself.
@@ -321,7 +321,7 @@ fun AddServerScreen(onDone: (serverID: String) -> Unit, onBack: () -> Unit) {
                     // Every protocol the server runs, in chips that wrap: none is pushed out of a narrow row.
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                         for (c in Maintenance.CARRIERS) {
-                            OlcFilterChip(selected = carrier == c, onClick = { carrier = c; transport = Maintenance.transportFor(c, transport); room = "" },
+                            OlcFilterChip(selected = carrier == c, onClick = { carrier = c; transport = Maintenance.defaultTransport(c); room = "" },
                                 label = { Text(OlcrtcLink.carrierLabel(c)) })
                         }
                     }
