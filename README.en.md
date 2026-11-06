@@ -30,10 +30,13 @@
 
 ## What it is
 
-olcOS sends your phone's traffic through your own server. The data travels inside an ordinary video call on VK Calls,
-Yandex Telemost, SaluteJazz, MTS Link or Jitsi. When mobile internet only works through a whitelist, an ordinary VPN
-can't reach its server, while carriers usually let VK and Yandex calls through. Without whitelists the phone can also
-connect to the server directly over Xray (VLESS + REALITY).
+olcOS sends your phone's traffic through your own server. The data travels inside an ordinary video call (WebRTC) on
+one of the calling services the app supports. The list lives in the app and grows with updates. When mobile internet
+only works through a whitelist, an ordinary VPN can't reach its server, while a call to a whitelisted service gets
+through. Without whitelists the phone can also connect to the server directly over Xray (VLESS + REALITY), so the
+speed isn't limited by the call.
+
+You need Android 8.0 or later on a 64-bit processor (arm64-v8a or x86_64). The APK is about 150 MB.
 
 How whitelists work, how to install the app and how to set up a server is explained in the
 [main repository](https://github.com/olcOS/olcos/blob/main/README.en.md).
@@ -47,8 +50,10 @@ How whitelists work, how to install the app and how to set up a server is explai
 - Install your own server over SSH from inside the app: Connections → + → My own server (VPS).
 - Server management: status, starting and stopping rooms, logs, new protocols, key rotation and invites for other
   devices.
-- Telemost, VK Calls and SaluteJazz rooms are created from the phone. MTS Link needs a permanent meeting from your own
-  account.
+- The app creates call rooms by itself. If a service needs an account, the app asks you to sign in once.
+- Settings for those who know what they change: VP8 video channel frames and packets (30 frames of 64 packets by
+  default), DNS, proxy port and login, connection checks and switching to a working connection. A connection link can
+  be edited by hand: it holds every parameter, Xray settings included.
 - Updates through [Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22io.olcos.app%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FolcOS%2Folcos%22%2C%22author%22%3A%22olcOS%22%2C%22name%22%3A%22olcOS%22%7D),
   which watches the GitHub releases and offers each new version.
 - The app is available in English and Russian.
