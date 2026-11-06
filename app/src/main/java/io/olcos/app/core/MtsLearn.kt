@@ -292,6 +292,8 @@ object MtsLearn {
         val copy = entry.raw ?: return Built(null, "the page hook gave no copy of the request")
         copy.unsupported?.let { return Built(null, "the request carries $it") }
         if (!copy.url.startsWith("https://")) return Built(null, "the request URL is not an absolute https URL")
+        // The replay carries the session's headers: a request a script on the page reported for another host is not learned.
+        if (!isMtsLinkUrl(copy.url)) return Built(null, "the request URL is not on mts-link.ru")
         val json = parseJson(entry.response)
         val kind: Kind
         val path: List<Seg>
@@ -585,6 +587,12 @@ object MtsLearn {
             ?: return Answer.Failed("the answer holds no meeting at '" + (pathText(template.path).ifEmpty { "(whole text)" }) + "'")
         if (!isNewRoom(link, current)) return Answer.Failed("the service handed back the room that is current")
         return Answer.Made(link)
+    }
+
+    /** PURE: whether [url] points at mts-link.ru or one of its subdomains. */
+    private fun isMtsLinkUrl(url: String): Boolean {
+        val host = runCatching { URI(url).host }.getOrNull()?.lowercase() ?: return false
+        return host == "mts-link.ru" || host.endsWith(".mts-link.ru")
     }
 
     private val signInPath = Regex("(?i)/(login|signin|sign-in|sign_in|auth|authorize|registration|register|signup|sign-up|sso|oauth)(/|\\z)")
