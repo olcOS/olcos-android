@@ -531,4 +531,9 @@
     <string name="import_what_subscription_fmt">Список с адреса %1$s. Приложение будет время от времени загружать его оттуда заново.</string>
     <string name="import_what_invite_fmt">Приглашение на сервер %1$s</string>
     <string name="import_what_list">Список подключений</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_edit_link">Изменить ссылку</string>
+    <string name="connection_edit_title">Ссылка подключения</string>
+    <string name="connection_edit_hint">Для тех, кто знает, что меняет: в ссылке все настройки подключения, например fp, sni, spx и flow у ссылки vless:// или vp8-fps и vp8-batch у olcrtc://. Ссылка, которая не читается как подключение, не сохранится.</string>
+    <string name="connection_edit_invalid">Это не ссылка подключения olcrtc:// или vless://.</string>
 </resources>

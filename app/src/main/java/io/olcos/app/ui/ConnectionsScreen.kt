@@ -250,6 +250,7 @@ fun ConnectionsScreen(
 
     var qrFor by remember { mutableStateOf<ConnectionRecord?>(null) }
     var removeFor by remember { mutableStateOf<ConnectionRecord?>(null) }
+    var editFor by remember { mutableStateOf<ConnectionRecord?>(null) }
     var removeSourceFor by remember { mutableStateOf<SubscriptionSource?>(null) }
     var problemFor by remember { mutableStateOf<Pair<ConnectionRecord, String>?>(null) }
     val health = rememberHealth(records)
@@ -268,6 +269,7 @@ fun ConnectionsScreen(
             Toast.makeText(context, R.string.link_copied, Toast.LENGTH_SHORT).show()
         },
         onQR = { qrFor = it },
+        onEdit = { editFor = it },
         onRemove = { removeFor = it },
     )
 
@@ -322,6 +324,56 @@ fun ConnectionsScreen(
             title = { Text(record.displayName, style = Type.title) },
             text = { QrImage(link, Modifier.fillMaxWidth().aspectRatio(1f)) },
             confirmButton = { OlcTextButton(onClick = { qrFor = null }) { Text(stringResource(R.string.action_close)) } },
+        )
+    }
+    editFor?.let { record ->
+        // The link itself is the editor: everything a link can say (fp, sni, spx, flow of a vless:// link; vp8-fps,
+        // vp8-batch of an olcrtc:// one) can be changed here, and what does not read as a connection is not saved.
+        val p = OlcosTheme.palette
+        var text by remember(record.id) { mutableStateOf(record.olcrtc?.encode() ?: record.xray?.encode(record.name) ?: "") }
+        var invalid by remember(record.id) { mutableStateOf(false) }
+        AlertDialog(
+            onDismissRequest = { editFor = null },
+            title = { Text(stringResource(R.string.connection_edit_title), style = Type.title) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.connection_edit_hint), style = Type.caption, color = p.textSecondary)
+                    Spacer(Modifier.height(Metrics.s2))
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = {
+                            text = it
+                            invalid = false
+                        },
+                        minLines = 3,
+                        textStyle = Type.caption,
+                        isError = invalid,
+                        supportingText = if (invalid) {
+                            { Text(stringResource(R.string.connection_edit_invalid)) }
+                        } else {
+                            null
+                        },
+                        shape = RoundedCornerShape(Metrics.controlRadius),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = p.accentTint, unfocusedBorderColor = p.fillBorder,
+                            focusedTextColor = p.textPrimary, unfocusedTextColor = p.textPrimary, cursorColor = p.accentTint,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                OlcTextButton(onClick = {
+                    val input = SubscriptionList.detectImport(text.trim())
+                    if (input is SubscriptionList.Import.Connection) {
+                        store.update(record.copy(details = input.details, name = input.name.ifBlank { record.name }))
+                        editFor = null
+                    } else {
+                        invalid = true
+                    }
+                }) { Text(stringResource(R.string.action_save)) }
+            },
+            dismissButton = { OlcTextButton(onClick = { editFor = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
     removeFor?.let { record ->
@@ -383,6 +435,7 @@ private class RowActions(
     val onProblem: (ConnectionRecord, String) -> Unit,
     val onCopy: (ConnectionRecord) -> Unit,
     val onQR: (ConnectionRecord) -> Unit,
+    val onEdit: (ConnectionRecord) -> Unit,
     val onRemove: (ConnectionRecord) -> Unit,
 )
 
@@ -688,10 +741,12 @@ private fun ConnectionRow(record: ConnectionRecord, actions: RowActions, subtitl
                 }
             }
         }
-        OlcOverflowMenu(listOf(
+        OlcOverflowMenu(listOfNotNull(
             OlcMenuItem(stringResource(R.string.action_check), Icons.Filled.NetworkCheck) { actions.onCheck(record) },
             OlcMenuItem(stringResource(R.string.action_copy_link), Icons.Filled.ContentCopy) { actions.onCopy(record) },
             OlcMenuItem(stringResource(R.string.action_show_qr), Icons.Filled.QrCode) { actions.onQR(record) },
+            // A list's node is rewritten by the list's next refresh: only a connection of one's own is edited.
+            if (record.subSource == null) OlcMenuItem(stringResource(R.string.action_edit_link), Icons.Filled.Tune) { actions.onEdit(record) } else null,
             OlcMenuItem(stringResource(R.string.action_remove_connection), Icons.Filled.Delete, destructive = true, dividerBefore = true) { actions.onRemove(record) },
         ))
     }

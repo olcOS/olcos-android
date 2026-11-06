@@ -525,4 +525,9 @@
     <string name="import_what_subscription_fmt">A list from %1$s. The app will fetch it from there again now and then.</string>
     <string name="import_what_invite_fmt">An invite to the server %1$s</string>
     <string name="import_what_list">A list of connections</string>
+    <string name="action_save">Save</string>
+    <string name="action_edit_link">Edit link</string>
+    <string name="connection_edit_title">Connection link</string>
+    <string name="connection_edit_hint">For those who know what they change: the link holds every setting of the connection, such as fp, sni, spx and flow of a vless:// link or vp8-fps and vp8-batch of an olcrtc:// one. A link that does not read as a connection is not saved.</string>
+    <string name="connection_edit_invalid">This is not an olcrtc:// or vless:// connection link.</string>
 </resources>
